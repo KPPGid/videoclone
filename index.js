@@ -5,7 +5,7 @@ const { v4: uuidv4 } = require("uuid");
 const sqlite3 = require("sqlite3").verbose();
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // Buat folder upload jika belum ada
 const fs = require("fs");
