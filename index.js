@@ -38,7 +38,7 @@ app.post("/upload", upload.single("video"), (req, res) => {
   const id = uuidv4();
   db.run("INSERT INTO videos (id, filename) VALUES (?, ?)", [id, req.file.filename], (err) => {
     if (err) return res.status(500).send("Database error.");
-    res.redirect(`/uploaded.html?id=${id}`);
+    res.redirect(`/upload.html?id=${id}`);
   });
 });
 
