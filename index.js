@@ -1,73 +1,75 @@
 const express = require("express");
 const multer = require("multer");
-const path = require("path");
-const { v4: uuidv4 } = require("uuid");
 const sqlite3 = require("sqlite3").verbose();
+const { v4: uuidv4 } = require("uuid");
+const path = require("path");
+const fs = require("fs");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
 
-// Buat folder upload jika belum ada
-const fs = require("fs");
-if (!fs.existsSync("./uploads")) fs.mkdirSync("./uploads");
-
-// Setup database
-const db = new sqlite3.Database("video.db");
-db.run(`
-  CREATE TABLE IF NOT EXISTS videos (
-    id TEXT PRIMARY KEY,
-    filename TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )
-`);
-
-// Middleware
-app.use(express.static("public"));
-app.use("/videos", express.static("uploads"));
-app.use(express.urlencoded({ extended: true }));
-
-// Setup multer
+// Konfigurasi Multer
 const storage = multer.diskStorage({
-  destination: "./uploads",
+  destination: "uploads/",
   filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, uuidv4() + ext);
-  },
+    const uniqueName = uuidv4() + path.extname(file.originalname);
+    cb(null, uniqueName);
+  }
 });
 const upload = multer({ storage });
 
-// Halaman utama
-app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/public/index.html");
+// Middleware
+app.use(express.static("public"));
+app.use(express.urlencoded({ extended: true }));
+
+// Setup database SQLite
+const db = new sqlite3.Database("video.db");
+db.serialize(() => {
+  db.run(`
+    CREATE TABLE IF NOT EXISTS videos (
+      id TEXT PRIMARY KEY,
+      filename TEXT
+    )
+  `);
 });
 
-// Upload handler
+// Route upload
 app.post("/upload", upload.single("video"), (req, res) => {
   const id = uuidv4();
-  const filename = req.file.filename;
-
-  db.run("INSERT INTO videos (id, filename) VALUES (?, ?)", [id, filename], () => {
-    res.redirect(`/upload.html?id=${id}`);
+  db.run("INSERT INTO videos (id, filename) VALUES (?, ?)", [id, req.file.filename], (err) => {
+    if (err) return res.status(500).send("Database error.");
+    res.redirect(`/uploaded.html?id=${id}`);
   });
 });
 
-// Halaman pemutar video
+// Route tampilkan video
 app.get("/v", (req, res) => {
   const id = req.query.id;
   db.get("SELECT filename FROM videos WHERE id = ?", [id], (err, row) => {
-    if (!row) return res.status(404).send("Video not found.");
+    if (err || !row) return res.status(404).send("Video tidak ditemukan.");
+    const videoPath = path.join(__dirname, "uploads", row.filename);
     res.send(`
-      <h2>Video:</h2>
-      <video width="100%" controls autoplay>
-        <source src="/videos/${row.filename}" type="video/mp4" />
+      <html><body>
+      <video width="640" controls>
+        <source src="/video/${row.filename}" type="video/mp4">
+        Browser tidak mendukung video.
       </video>
+      </body></html>
     `);
   });
 });
 
-const PORT = process.env.PORT || 3000;
+// Serve file video langsung
+app.get("/video/:filename", (req, res) => {
+  const filePath = path.join(__dirname, "uploads", req.params.filename);
+  if (fs.existsSync(filePath)) {
+    res.sendFile(filePath);
+  } else {
+    res.status(404).send("File video tidak ditemukan.");
+  }
+});
+
+// Menjalankan server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
-
