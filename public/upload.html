@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Video Kamu Siap</title>
+</head>
+<body>
+  <h1>Berhasil Upload!</h1>
+  <p id="result"></p>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+
+    if (id) {
+      const link = `${window.location.origin}/v?id=${id}`;
+      document.getElementById("result").innerHTML = `
+        Link video kamu:<br>
+        <a href="${link}" target="_blank">${link}</a>
+      `;
+    } else {
+      document.getElementById("result").textContent = "Gagal mengambil ID video.";
+    }
+  </script>
+</body>
+</html>
