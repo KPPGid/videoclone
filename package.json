@@ -1,20 +1,14 @@
 {
-  "name": "genz-video-host",
+  "name": "videoclone",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "express": "^5.1.0",
-    "multer": "^2.0.2",
-    "nanoid": "^5.1.5",
-    "sequelize": "^6.37.7",
-    "sqlite3": "^5.1.7",
-    "uuid": "^11.1.0"
-  },
-  "description": ""
+    "express": "^4.18.2",
+    "multer": "^1.4.5",
+    "sqlite3": "^5.1.6",
+    "uuid": "^9.0.0"
+  }
 }

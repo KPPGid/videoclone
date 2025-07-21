@@ -6,6 +6,7 @@ const sqlite3 = require("sqlite3").verbose();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
 
 // Buat folder upload jika belum ada
 const fs = require("fs");
